@@ -91,7 +91,7 @@ class ControlTransferInfo {
       "direction": this.direction.direction,
       "requestType": this.requestType.requestType,
       "recipient": this.recipient.recipient,
-
+      "index": this.index,
       "request": this.request,
       "value": this.value
     };
