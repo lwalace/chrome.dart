@@ -135,7 +135,7 @@ class GenericTransferInfo {
 
   Map toMap() {
     Map ret = {
-     "direction": this.direction, 
+     "direction": this.direction.direction, 
      "endpoint": this.endpoint 
     };
 
