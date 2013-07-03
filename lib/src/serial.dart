@@ -177,12 +177,11 @@ class Serial {
       void openCallback(var openInfo) {
         _safeExecute(completer, () {
           logger.fine("openInfo = $openInfo");
-
           if (openInfo != null) {
             this.openInfo = new OpenInfo(openInfo.connectionId);
           }
 
-          completer.complete(openInfo);
+          completer.complete(this.openInfo);
         });
       };
 
