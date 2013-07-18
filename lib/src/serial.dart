@@ -93,8 +93,9 @@ class Serial {
 
   final String port;
   final int speed;
+  final List<String> eolCharacters;
 
-  Serial(this.port, this.speed);
+  Serial(this.port, this.speed, [this.eolCharacters =  ['\n']]);
 
   /// callbacks need to check lastError
   static _safeExecute(completer, f) {
@@ -209,6 +210,13 @@ class Serial {
     }
   }
 
+  bool _endsWithEol(String value) {
+    for(String end in eolCharacters) {
+      if(value.endsWith(end)) return true;
+    }
+    return false;
+  }
+  
   void _onCharRead() {
     if (isConnected) {
       _jsRead() {
@@ -221,8 +229,8 @@ class Serial {
             }
 
             var str = new String.fromCharCodes(chars);
-            if (str.endsWith("\n")) {
-              _dataRead.write(str.substring(0, str.length - 1));
+            if (_endsWithEol(str)) {
+              _dataRead.write(str);
 
               if (onRead != null) {
                 onRead(_dataRead.toString());
