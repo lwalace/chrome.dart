@@ -1,5 +1,7 @@
 library chrome_serial;
 
+import 'dart:html';
+
 import 'dart:async';
 import 'dart:json' as JSON;
 
@@ -181,7 +183,6 @@ class Serial {
           if (openInfo != null) {
             this.openInfo = new OpenInfo(openInfo.connectionId);
           }
-
           completer.complete(this.openInfo);
         });
       };
@@ -241,8 +242,8 @@ class Serial {
               _dataRead.write(str);
             }
           }
-
-          js.context.chrome.serial.read(openInfo.connectionId, 1, js.context.readCallback);
+          if(isConnected)
+            js.context.chrome.serial.read(openInfo.connectionId, 1, js.context.readCallback);
         };
 
         js.context.readCallback = new js.Callback.many(readCallback);
@@ -258,13 +259,14 @@ class Serial {
 
   Future<bool> close() {
     var completer = new Completer();
-
+    
     _jsClose() {
+      
       void closeCallback(var result) {
         _safeExecute(completer, () {
           logger.fine("closeCallback = ${result}");
-          openInfo = null;
           completer.complete(result);
+          openInfo = null;
         });
       };
 
@@ -303,7 +305,6 @@ class Serial {
         var buf = new js.Proxy(js.context.ArrayBuffer, data.codeUnits.length);
         var bufView = new js.Proxy(js.context.Uint8Array, buf)
         ..set(js.array(data.codeUnits));
-
         js.context.chrome.serial.write(openInfo.connectionId, buf, js.context.writeCallback);
       };
 
