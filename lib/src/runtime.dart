@@ -232,7 +232,7 @@ class Runtime {
       };
 
       js.context.onSuspendEvent = new js.Callback.many(event);
-      js.context.retain(js.context.onSuspendEvent);
+      js.retain(js.context.onSuspendEvent);
       var chrome = js.context.chrome;
       chrome.runtime.onSuspend.addListener(js.context.onSuspendEvent);
     });
