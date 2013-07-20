@@ -96,8 +96,9 @@ class Serial {
   final String port;
   final int speed;
   final List<String> eolCharacters;
+  final int timeoutMS;
 
-  Serial(this.port, this.speed, [this.eolCharacters =  ['\n']]);
+  Serial(this.port, this.speed, {this.eolCharacters:  ['\n'], this.timeoutMS: 0});
 
   /// callbacks need to check lastError
   static _safeExecute(completer, f) {
@@ -222,14 +223,18 @@ class Serial {
     if (isConnected) {
       _jsRead() {
         void readCallback(var readInfo) {
+          if(!isConnected) return;
+          
           if (readInfo != null && readInfo.bytesRead > 0 && readInfo.data != null) {
             var bufView = new js.Proxy(js.context.Uint8Array, readInfo.data);
             List chars = [];
             for (var i = 0; i < bufView.length; i++) {
+              window.console.log("Bytes read ${bufView[i]}; ascii: ${new String.fromCharCode(bufView[i])}");
               chars.add(bufView[i]);
             }
 
             var str = new String.fromCharCodes(chars);
+            window.console.log("String from last chars: $str");
             if (_endsWithEol(str)) {
               _dataRead.write(str);
 
@@ -241,9 +246,12 @@ class Serial {
             } else {
               _dataRead.write(str);
             }
-          }
-          if(isConnected)
+            
             js.context.chrome.serial.read(openInfo.connectionId, 1, js.context.readCallback);
+          } else { //Nothing received on last poll, cool off before polling again
+              new Timer(new Duration(milliseconds: timeoutMS),
+                  ()=>js.context.chrome.serial.read(openInfo.connectionId, 1, js.context.readCallback));
+          }
         };
 
         js.context.readCallback = new js.Callback.many(readCallback);
