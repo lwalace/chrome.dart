@@ -97,8 +97,9 @@ class Serial {
   final int speed;
   final List<String> eolCharacters;
   final int timeoutMS;
+  final bool adjust;
 
-  Serial(this.port, this.speed, {this.eolCharacters:  ['\n'], this.timeoutMS: 0});
+  Serial(this.port, this.speed, {this.eolCharacters:  ['\n'], this.timeoutMS: 0, this.adjust: false});
 
   /// callbacks need to check lastError
   static _safeExecute(completer, f) {
@@ -218,6 +219,10 @@ class Serial {
     }
     return false;
   }
+
+  int _adjust(int value ){
+    return value > 127 ? value - 128 : value;
+  }
   
   void _onCharRead() {
     if (isConnected) {
@@ -229,12 +234,13 @@ class Serial {
             var bufView = new js.Proxy(js.context.Uint8Array, readInfo.data);
             List chars = [];
             for (var i = 0; i < bufView.length; i++) {
-              window.console.log("Bytes read ${bufView[i]}; ascii: ${new String.fromCharCode(bufView[i])}");
-              chars.add(bufView[i]);
+              if(adjust)
+                chars.add(_adjust(bufView[i]));
+              else
+                chars.add(bufView[i]);
             }
 
             var str = new String.fromCharCodes(chars);
-            window.console.log("String from last chars: $str");
             if (_endsWithEol(str)) {
               _dataRead.write(str);
 
